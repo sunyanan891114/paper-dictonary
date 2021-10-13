@@ -5,7 +5,7 @@ Users can use it to list paper in pdf type and support multiple operations inclu
 
 ![alt text](app.png "Title")
 
-https://github.com/sunyanan891114/paper-dictonary/blob/master/app.gif
+![Alt Text](app.gif)
 
 
 ## Project setup
