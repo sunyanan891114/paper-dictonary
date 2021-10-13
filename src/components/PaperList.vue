@@ -9,9 +9,7 @@
         @input="searchPaper"
       >
       </el-input>
-      <el-button class="import-button" type="primary" @click="addFile">
-        Import
-      </el-button>
+      <paper-import-button @imported="getPdfData"></paper-import-button>
     </el-header>
 
     <el-main>
@@ -23,14 +21,7 @@
         <el-table-column label="Action" align="center" width="120px">
           <template slot-scope="scope">
             <div class="action">
-              <i
-                v-bind:class="{
-                  'el-icon-star-off': !scope.row.like,
-                  'el-icon-star-on': scope.row.like,
-                }"
-                class="like-icon"
-                @click="handleLike(scope.row)"
-              ></i>
+              <paper-like-icon :paper="scope.row"></paper-like-icon>
               <p
                 class="read"
                 v-bind:class="{ active: scope.row.read }"
@@ -58,53 +49,18 @@
 </template>
 
 <script>
-import { selectPdfFiles } from "../services/fileService";
 import { dbService } from "../services/dbService";
-import { getPdfContent } from "../services/pdfService";
-import { getPaperName } from "../services/paperService";
 import { debounce } from "lodash";
+import PaperImportButton from "./PaperImportButton";
+import PaperLikeIcon from "./PaperLikeIcon";
 
 export default {
   name: "PaperList",
+  components: { PaperImportButton, PaperLikeIcon },
+
   methods: {
-    async addFile() {
-      try {
-        this.loading = true;
-        const file = await selectPdfFiles();
-        if (file.filePaths.length === 0) {
-          this.loading = false;
-          return;
-        }
-
-        const pdfs = await Promise.all(
-          file.filePaths.map(async (filePath) => {
-            const content = await getPdfContent(filePath);
-            return {
-              path: filePath,
-              title: getPaperName(content),
-            };
-          })
-        );
-
-        await dbService.savePaper(pdfs);
-        await this.getPdfData();
-        this.loading = false;
-        this.$message({
-          message: "Congratulations, Import Success",
-          type: "success",
-        });
-      } catch (e) {
-        this.$message({
-          message: e.message,
-          type: "error",
-        });
-        this.loading = false;
-      }
-    },
-
     async getPdfData() {
       this.tableData = await dbService.getAllPaper();
-      console.log(this.tableData);
     },
 
     async searchPaper() {
@@ -112,22 +68,7 @@ export default {
         dbService.filterPaper(this.search).then((data) => {
           this.tableData = data;
         });
-        console.log(this.search);
       }, 500)();
-    },
-
-    async handleLike(paper) {
-      console.log(paper);
-      paper.like = !paper.like;
-      try {
-        await dbService.updatePaper(paper);
-        this.$message({
-          message: `${paper.like ? "Cancel Like" : "Like"} Success`,
-          type: "success",
-        });
-      } catch (e) {
-        console.log(e);
-      }
     },
 
     handleRead(paper) {
@@ -176,19 +117,6 @@ export default {
 .action {
   display: flex;
   align-items: center;
-}
-
-.like-icon {
-  cursor: pointer;
-  font-size: 20px;
-
-  &.el-icon-star-on {
-    color: #409eff;
-  }
-
-  &:hover {
-    color: #e6a23c;
-  }
 }
 
 .read {
