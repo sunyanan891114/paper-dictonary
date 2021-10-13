@@ -1,7 +1,10 @@
 # paper-dictionary
 
-This project built an Electron App for paper collect.
+Paper dictionary is an Electron based App for paper collection.
 Users can use it to list paper in pdf type and support multiple operations including read, like, search and so on.
+
+![alt text](app.png "Title")
+
 
 
 ## Project setup
