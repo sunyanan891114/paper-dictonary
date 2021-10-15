@@ -5,7 +5,7 @@
       'el-icon-star-on': paper.like,
     }"
     class="like-icon"
-    @click="handleLike(paper)"
+    @click.stop="handleLike(paper)"
   ></i>
 </template>
 <script>

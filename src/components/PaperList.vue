@@ -14,7 +14,14 @@
 
     <el-main>
       <el-table :data="tableData" v-loading="loading">
-        <el-table-column prop="title" label="Title"> </el-table-column>
+        <el-table-column prop="title" label="Title">
+          <template slot-scope="scope">
+            <p class="paper-title" @click="handleCurrentChange(scope.row)">
+              <span v-if="!scope.row.read" class="new-icon">new</span>
+              {{ scope.row.title }}
+            </p>
+          </template>
+        </el-table-column>
         <el-table-column prop="path" label="Path"> </el-table-column>
         <el-table-column prop="author" label="Author"></el-table-column>
         <el-table-column prop="date" label="Date"></el-table-column>
@@ -25,7 +32,7 @@
               <p
                 class="read"
                 v-bind:class="{ active: scope.row.read }"
-                @click="handleRead(scope.row)"
+                @click.stop="handleRead(scope.row)"
               >
                 MarkRead
               </p>
@@ -53,6 +60,7 @@ import { dbService } from "../services/dbService";
 import { debounce } from "lodash";
 import PaperImportButton from "./PaperImportButton";
 import PaperLikeIcon from "./PaperLikeIcon";
+import { ipcRenderer } from "electron";
 
 export default {
   name: "PaperList",
@@ -83,6 +91,17 @@ export default {
       this.loading = false;
       this.dialogVisible = false;
     },
+
+    handleCurrentChange(val) {
+      console.log(val);
+      ipcRenderer.send("pdf-view", val);
+    },
+  },
+  mounted() {
+    ipcRenderer.on("pdf-read", (event, pdf) => {
+      pdf.read = true;
+      dbService.updatePaper(pdf);
+    });
   },
   data() {
     return {
@@ -111,6 +130,23 @@ export default {
 
   .import-button {
     height: 40px;
+  }
+}
+
+.new-icon {
+  font-style: italic;
+  font-size: 10px;
+  color: #f56c6c;
+  width: 50px;
+}
+
+.paper-title {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: #409eff;
   }
 }
 

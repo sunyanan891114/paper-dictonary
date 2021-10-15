@@ -1,6 +1,6 @@
 "use strict";
 
-import { app, protocol, BrowserWindow } from "electron";
+import { app, protocol, BrowserWindow, ipcMain } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -10,11 +10,12 @@ protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } },
 ]);
 
+let mainWindow;
+
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+  mainWindow = new BrowserWindow({
+    show: false,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -23,16 +24,18 @@ async function createWindow() {
       enableRemoteModule: true,
     },
   });
+  mainWindow.maximize();
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-    if (!process.env.IS_TEST) win.webContents.openDevTools();
+    await mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+    if (!process.env.IS_TEST) mainWindow.webContents.openDevTools();
   } else {
     createProtocol("app");
     // Load the index.html when not in development
-    win.loadURL("app://./index.html");
+    await mainWindow.loadURL("app://./index.html");
   }
+  mainWindow.show();
 }
 
 // Quit when all windows are closed.
@@ -62,8 +65,18 @@ app.on("ready", async () => {
       console.error("Vue Devtools failed to install:", e.toString());
     }
   }
-  console.log("ready");
   createWindow();
+
+  ipcMain.on("pdf-view", async (event, pdf) => {
+    console.log("get event", pdf);
+    const child = new BrowserWindow({
+      parent: mainWindow,
+      frame: true,
+    });
+    await child.loadFile(pdf.path);
+
+    event.sender.send("pdf-read", pdf);
+  });
 });
 
 // Exit cleanly on request from parent process in development mode.
