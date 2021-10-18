@@ -14,10 +14,18 @@
 
     <el-main>
       <el-table :data="tableData" v-loading="loading">
+        <el-table-column width="40">
+          <template slot-scope="scope">
+            <span v-if="!scope.row.read" class="new-icon">new</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="title" label="Title">
           <template slot-scope="scope">
-            <p class="paper-title" @click="handleCurrentChange(scope.row)">
-              <span v-if="!scope.row.read" class="new-icon">new</span>
+            <p
+              class="paper-title"
+              @click="handleCurrentChange(scope.row)"
+              @contextmenu="handleMenu(scope.row)"
+            >
               {{ scope.row.title }}
             </p>
           </template>
@@ -93,14 +101,17 @@ export default {
     },
 
     handleCurrentChange(val) {
-      console.log(val);
       ipcRenderer.send("pdf-view", val);
+    },
+
+    handleMenu(val) {
+      ipcRenderer.send("context-menu", val);
     },
   },
   mounted() {
-    ipcRenderer.on("pdf-read", (event, pdf) => {
-      pdf.read = true;
+    ipcRenderer.on("pdf-state-change", (event, pdf) => {
       dbService.updatePaper(pdf);
+      this.getPdfData();
     });
   },
   data() {
@@ -137,13 +148,10 @@ export default {
   font-style: italic;
   font-size: 10px;
   color: #f56c6c;
-  width: 50px;
 }
 
 .paper-title {
   cursor: pointer;
-  display: flex;
-  align-items: center;
 
   &:hover {
     color: #409eff;

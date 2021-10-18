@@ -1,8 +1,10 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, ipcMain } from "electron";
+import { app, protocol, BrowserWindow } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
+import { onOpenPdfPreviewWindow } from "./background/pdfService";
+import { onShowPaperListContextMenu } from "./background/contextMenuService";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Scheme must be registered before the app is ready
@@ -67,16 +69,8 @@ app.on("ready", async () => {
   }
   createWindow();
 
-  ipcMain.on("pdf-view", async (event, pdf) => {
-    console.log("get event", pdf);
-    const child = new BrowserWindow({
-      parent: mainWindow,
-      frame: true,
-    });
-    await child.loadFile(pdf.path);
-
-    event.sender.send("pdf-read", pdf);
-  });
+  onOpenPdfPreviewWindow(mainWindow);
+  onShowPaperListContextMenu();
 });
 
 // Exit cleanly on request from parent process in development mode.

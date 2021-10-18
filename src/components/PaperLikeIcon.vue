@@ -39,13 +39,13 @@ export default {
   cursor: pointer;
   font-size: 20px;
   &.el-icon-star-on {
-    color: #409eff;
+    color: #e6a23c;
   }
   &.el-icon-star-off {
     color: #b3c0d1;
   }
   &:hover {
-    color: #e6a23c;
+    color: rgba(#e6a23c, 0.8);
   }
 }
 </style>
