@@ -31,19 +31,28 @@
           </template>
         </el-table-column>
         <el-table-column prop="path" label="Path"> </el-table-column>
+        <el-table-column label="Tags" align="left">
+          <template slot-scope="scope">
+            <paper-tags
+              :tags="scope.row.tags || []"
+              @tag-change="handleTagChange($event, scope.row)"
+            >
+            </paper-tags>
+          </template>
+        </el-table-column>
         <el-table-column prop="author" label="Author"></el-table-column>
         <el-table-column prop="date" label="Date"></el-table-column>
         <el-table-column label="Action" align="center" width="120px">
           <template slot-scope="scope">
             <div class="action">
               <paper-like-icon :paper="scope.row"></paper-like-icon>
-              <p
-                class="read"
-                v-bind:class="{ active: scope.row.read }"
-                @click.stop="handleRead(scope.row)"
-              >
-                MarkRead
-              </p>
+<!--              <p-->
+<!--                class="read"-->
+<!--                v-bind:class="{ active: scope.row.read }"-->
+<!--                @click.stop="handleRead(scope.row)"-->
+<!--              >-->
+<!--                MarkRead-->
+<!--              </p>-->
             </div>
           </template>
         </el-table-column>
@@ -69,10 +78,11 @@ import { debounce } from "lodash";
 import PaperImportButton from "./PaperImportButton";
 import PaperLikeIcon from "./PaperLikeIcon";
 import { ipcRenderer } from "electron";
+import PaperTags from "./PaperTags";
 
 export default {
   name: "PaperList",
-  components: { PaperImportButton, PaperLikeIcon },
+  components: { PaperImportButton, PaperLikeIcon, PaperTags },
 
   methods: {
     async getPdfData() {
@@ -106,6 +116,11 @@ export default {
 
     handleMenu(val) {
       ipcRenderer.send("context-menu", val);
+    },
+
+    handleTagChange(tags, paper) {
+      paper.tags = tags;
+      dbService.updatePaper(paper);
     },
   },
   mounted() {

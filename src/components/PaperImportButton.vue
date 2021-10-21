@@ -29,9 +29,13 @@ export default {
         const pdfs = await Promise.all(
           file.filePaths.map(async (filePath) => {
             const content = await getPdfContent(filePath);
+            console.log(content);
             return {
               path: filePath,
               title: getPaperName(content),
+              tags: [],
+              read: false,
+              like: false,
             };
           })
         );
